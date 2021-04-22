@@ -48,6 +48,7 @@ random.seed(FixSeed)
 np.random.seed(FixSeed)
 torch.manual_seed(FixSeed)
 torch.cuda.manual_seed(FixSeed)
+device=torch.device("cuda")
 
 
 def train(args, net_model, optimizer):
@@ -72,11 +73,11 @@ def train(args, net_model, optimizer):
             audio_inputs, video_inputs, labels, segment_label_batch, segment_avps_gt_batch = AVEData.get_batch(i, SHUFFLE_SAMPLES)
             SHUFFLE_SAMPLES = False
 
-            audio_inputs = audio_inputs.cuda()
-            video_inputs = video_inputs.cuda()
-            labels = labels.cuda()
-            segment_label_batch = segment_label_batch.cuda()
-            segment_avps_gt_batch = segment_avps_gt_batch.cuda()
+            audio_inputs = audio_inputs.to(device)
+            video_inputs = video_inputs.to(device)
+            labels = labels.to(device)
+            segment_label_batch = segment_label_batch.to(device)
+            segment_avps_gt_batch = segment_avps_gt_batch.to(device)
 
             net_model.zero_grad()
             fusion, out_prob, cross_att = net_model(audio_inputs, video_inputs, args.threshold) # shape:
@@ -134,9 +135,9 @@ def val(args, net_model):
     nb_batch = AVEData.__len__()
     audio_inputs, video_inputs, labels, _, _ = AVEData.get_batch(0)
 
-    audio_inputs = audio_inputs.cuda()
-    video_inputs = video_inputs.cuda()
-    labels = labels.cuda()
+    audio_inputs = audio_inputs.to(device)
+    video_inputs = video_inputs.to(device)
+    labels = labels.to(device)
 
     fusion, out_prob, cross_att = net_model(audio_inputs, video_inputs, args.threshold)
 
@@ -161,9 +162,9 @@ def test(args, net_model, model_path=None):
     nb_batch = AVEData.__len__()
     audio_inputs, video_inputs, labels, _, _, = AVEData.get_batch(0)
 
-    audio_inputs = audio_inputs.cuda()
-    video_inputs = video_inputs.cuda()
-    labels = labels.cuda()
+    audio_inputs = audio_inputs.to(device)
+    video_inputs = video_inputs.to(device)
+    labels = labels.to(device)
 
     fusion, out_prob, cross_att = net_model(audio_inputs, video_inputs, args.threshold)
 
@@ -186,7 +187,7 @@ if __name__ == "__main__":
         net_model = psp_net(128, 512, 128, 29)
     else:
         raise NotImplementedError
-    net_model.cuda()
+    net_model.to(device)
     optimizer = optim.Adam(net_model.parameters(), lr=1e-3)
     optimizer = ScheduledOptim(optimizer)
 
